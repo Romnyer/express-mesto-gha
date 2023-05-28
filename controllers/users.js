@@ -9,7 +9,7 @@ const {
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => {
-      res.status(201).send(users);
+      res.status(201).send({ users });
     })
     .catch((err) => {
       res.status(SERVER_ERROR_CODE).send({
@@ -23,13 +23,19 @@ module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
 
     .then((user) => {
+      if (!user) {
+        res.status(NOT_FOUND_ERROR_CODE).send({
+          message: 'Пользователь с таким id не найден',
+        });
+        return;
+      }
       res.status(201).send(user);
     })
 
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(NOT_FOUND_ERROR_CODE).send({
-          message: 'Пользователь не найден',
+        res.status(NOT_VALID_ERROR_CODE).send({
+          message: 'Переданы некорректные данные',
         });
         return;
       }
@@ -72,23 +78,22 @@ module.exports.updateProfile = (req, res) => {
     { new: true },
   )
     .then((user) => {
-      res.status(201).send(user);
-    })
-    .catch((err) => {
-      if (!req.user._id) {
+      if (!user) {
         res.status(NOT_FOUND_ERROR_CODE).send({
-          message: 'Пользователь не найден',
+          message: 'Пользователь с таким id не найден',
         });
         return;
       }
 
-      if (err.name === 'CastError') {
+      if (!req.body.name || !req.body.about) {
         res.status(NOT_VALID_ERROR_CODE).send({
           message: 'Переданы некорректные данные',
         });
         return;
       }
-
+      res.status(200).send(user);
+    })
+    .catch((err) => {
       res.status(SERVER_ERROR_CODE).send({
         message: `Произошла ошибка ${err.message}`,
       });
@@ -105,23 +110,22 @@ module.exports.updateAvatar = (req, res) => {
     { new: true },
   )
     .then((user) => {
-      res.status(201).send(user);
-    })
-    .catch((err) => {
-      if (!req.user._id) {
+      if (!user) {
         res.status(NOT_FOUND_ERROR_CODE).send({
-          message: 'Пользователь не найден',
+          message: 'Пользователь с таким id не найден',
         });
         return;
       }
 
-      if (err.name === 'CastError') {
+      if (!req.body.avatar) {
         res.status(NOT_VALID_ERROR_CODE).send({
           message: 'Переданы некорректные данные',
         });
         return;
       }
-
+      res.status(200).send(user);
+    })
+    .catch((err) => {
       res.status(SERVER_ERROR_CODE).send({
         message: `Произошла ошибка ${err.message}`,
       });
