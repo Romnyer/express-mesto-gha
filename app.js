@@ -1,33 +1,34 @@
-const express = require('express'),
-      mongoose = require('mongoose'),
-      app = express();
+const express = require('express');
+const mongoose = require('mongoose');
 
-const userRouter = require('./routes/users'),
-      cardRouter = require('./routes/cards');
+const app = express();
 
-//Environment vars
-const {PORT = 3000} = process.env;
+const userRouter = require('./routes/users');
+const cardRouter = require('./routes/cards');
 
-//Connect to data base
+// Environment vars
+const { PORT = 3000 } = process.env;
+
+// Connect to data base
 mongoose.connect('mongodb://0.0.0.0:27017/mestodb', {});
 
-//Parser
+// Parser
 app.use(express.json());
 
 // Middlewares
 app.use((req, res, next) => {
   req.user = {
-    _id: '64732ffcf59598341e71a146'
+    _id: '64732ffcf59598341e71a146',
   };
 
   next();
 });
 
-//Routing
+// Routing
 app.use('/users', userRouter);
 app.use('/cards', cardRouter);
 
-//Set port
+// Set port
 app.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`)
+  console.log(`Сервер запущен на порту ${PORT}`);
 });
