@@ -9,7 +9,7 @@ const {
 module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => {
-      res.status(201).send({ cards });
+      res.status(200).send({ cards });
     })
     .catch((err) => {
       res.status(SERVER_ERROR_CODE).send({
@@ -50,7 +50,7 @@ module.exports.deleteCard = (req, res) => {
         });
         return;
       }
-      res.status(201).send({ card });
+      res.status(200).send({ card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -110,7 +110,7 @@ module.exports.dislikeCard = (req, res) => {
         });
         return;
       }
-      res.status(201).send(card);
+      res.status(200).send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {

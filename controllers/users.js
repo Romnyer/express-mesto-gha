@@ -9,7 +9,7 @@ const {
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => {
-      res.status(201).send({ users });
+      res.status(200).send({ users });
     })
     .catch((err) => {
       res.status(SERVER_ERROR_CODE).send({
@@ -29,7 +29,7 @@ module.exports.getUserById = (req, res) => {
         });
         return;
       }
-      res.status(201).send(user);
+      res.status(200).send(user);
     })
 
     .catch((err) => {
@@ -75,27 +75,36 @@ module.exports.updateProfile = (req, res) => {
   User.findByIdAndUpdate(
     req.user._id,
     { name, about },
-    { new: true },
+    { new: true, runValidators: true },
   )
+    .orFail()
     .then((user) => {
-      if (!user) {
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'DocumentNotFoundError') {
         res.status(NOT_FOUND_ERROR_CODE).send({
           message: 'Пользователь с таким id не найден',
         });
         return;
       }
 
-      if (!req.body.name || !req.body.about) {
+      if (err.name === 'ValidationError') {
         res.status(NOT_VALID_ERROR_CODE).send({
           message: 'Переданы некорректные данные',
         });
         return;
       }
-      res.status(200).send(user);
-    })
-    .catch((err) => {
+
+      if (err) {
+        res.send({
+          err,
+        });
+      }
+
       res.status(SERVER_ERROR_CODE).send({
         message: `Произошла ошибка ${err.message}`,
+        err,
       });
     });
 };
@@ -107,25 +116,27 @@ module.exports.updateAvatar = (req, res) => {
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
-    { new: true },
+    { new: true, runValidators: true },
   )
+    .orFail()
     .then((user) => {
-      if (!user) {
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'DocumentNotFoundError') {
         res.status(NOT_FOUND_ERROR_CODE).send({
           message: 'Пользователь с таким id не найден',
         });
         return;
       }
 
-      if (!req.body.avatar) {
+      if (err.name === 'ValidationError') {
         res.status(NOT_VALID_ERROR_CODE).send({
           message: 'Переданы некорректные данные',
         });
         return;
       }
-      res.status(200).send(user);
-    })
-    .catch((err) => {
+
       res.status(SERVER_ERROR_CODE).send({
         message: `Произошла ошибка ${err.message}`,
       });

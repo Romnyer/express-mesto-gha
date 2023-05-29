@@ -1,5 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const {
+  NOT_FOUND_ERROR_CODE,
+} = require('./errors/errors');
 
 const app = express();
 
@@ -27,6 +30,11 @@ app.use((req, res, next) => {
 // Routing
 app.use('/users', userRouter);
 app.use('/cards', cardRouter);
+app.use('/*', (req, res) => {
+  res.status(NOT_FOUND_ERROR_CODE).send({
+    message: 'Страница не найдена',
+  });
+});
 
 // Set port
 app.listen(PORT, () => {
