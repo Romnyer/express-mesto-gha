@@ -1,15 +1,19 @@
+const mongooseError = require('mongoose').Error;
+
 const User = require('../models/user');
 const {
+  OK_STATUS_CODE,
+  CREATED_STATUS_CODE,
   NOT_VALID_ERROR_CODE,
   NOT_FOUND_ERROR_CODE,
   SERVER_ERROR_CODE,
-} = require('../errors/errors');
+} = require('../constants/constants');
 
 // All users route
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => {
-      res.status(200).send({ users });
+      res.status(OK_STATUS_CODE).send({ users });
     })
     .catch((err) => {
       res.status(SERVER_ERROR_CODE).send({
@@ -29,11 +33,11 @@ module.exports.getUserById = (req, res) => {
         });
         return;
       }
-      res.status(200).send(user);
+      res.status(OK_STATUS_CODE).send(user);
     })
 
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err instanceof mongooseError.CastError) {
         res.status(NOT_VALID_ERROR_CODE).send({
           message: 'Переданы некорректные данные',
         });
@@ -52,10 +56,10 @@ module.exports.createUser = (req, res) => {
 
   User.create({ name, about, avatar })
     .then((user) => {
-      res.status(201).send(user);
+      res.status(CREATED_STATUS_CODE).send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err instanceof mongooseError.ValidationError) {
         res.status(NOT_VALID_ERROR_CODE).send({
           message: 'Переданы некорректные данные',
         });
@@ -69,37 +73,29 @@ module.exports.createUser = (req, res) => {
 };
 
 // Update profile
-module.exports.updateProfile = (req, res) => {
-  const { name, about } = req.body;
-
+function updateUser(id, body, res) {
   User.findByIdAndUpdate(
-    req.user._id,
-    { name, about },
+    id,
+    body,
     { new: true, runValidators: true },
   )
     .orFail()
     .then((user) => {
-      res.status(200).send(user);
+      res.status(OK_STATUS_CODE).send(user);
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
+      if (err instanceof mongooseError.DocumentNotFoundError) {
         res.status(NOT_FOUND_ERROR_CODE).send({
           message: 'Пользователь с таким id не найден',
         });
         return;
       }
 
-      if (err.name === 'ValidationError') {
+      if (err instanceof mongooseError.ValidationError) {
         res.status(NOT_VALID_ERROR_CODE).send({
           message: 'Переданы некорректные данные',
         });
         return;
-      }
-
-      if (err) {
-        res.send({
-          err,
-        });
       }
 
       res.status(SERVER_ERROR_CODE).send({
@@ -107,38 +103,17 @@ module.exports.updateProfile = (req, res) => {
         err,
       });
     });
+}
+
+module.exports.updateProfile = (req, res) => {
+  const { name, about } = req.body;
+
+  updateUser(req.user._id, { name, about }, res);
 };
 
 // Update avatar
 module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
 
-  User.findByIdAndUpdate(
-    req.user._id,
-    { avatar },
-    { new: true, runValidators: true },
-  )
-    .orFail()
-    .then((user) => {
-      res.status(200).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        res.status(NOT_FOUND_ERROR_CODE).send({
-          message: 'Пользователь с таким id не найден',
-        });
-        return;
-      }
-
-      if (err.name === 'ValidationError') {
-        res.status(NOT_VALID_ERROR_CODE).send({
-          message: 'Переданы некорректные данные',
-        });
-        return;
-      }
-
-      res.status(SERVER_ERROR_CODE).send({
-        message: `Произошла ошибка ${err.message}`,
-      });
-    });
+  updateUser(req.user._id, { avatar }, res);
 };

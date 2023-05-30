@@ -1,15 +1,19 @@
+const mongooseError = require('mongoose').Error;
+
 const Card = require('../models/card');
 const {
+  OK_STATUS_CODE,
+  CREATED_STATUS_CODE,
   NOT_VALID_ERROR_CODE,
   NOT_FOUND_ERROR_CODE,
   SERVER_ERROR_CODE,
-} = require('../errors/errors');
+} = require('../constants/constants');
 
 // All cards route
 module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => {
-      res.status(200).send({ cards });
+      res.status(OK_STATUS_CODE).send({ cards });
     })
     .catch((err) => {
       res.status(SERVER_ERROR_CODE).send({
@@ -24,10 +28,10 @@ module.exports.createCard = (req, res) => {
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
-      res.status(201).send(card);
+      res.status(CREATED_STATUS_CODE).send(card);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err instanceof mongooseError.ValidationError) {
         res.status(NOT_VALID_ERROR_CODE).send({
           message: 'Переданы некорректные данные',
         });
@@ -50,10 +54,10 @@ module.exports.deleteCard = (req, res) => {
         });
         return;
       }
-      res.status(200).send({ card });
+      res.status(OK_STATUS_CODE).send({ card });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err instanceof mongooseError.CastError) {
         res.status(NOT_VALID_ERROR_CODE).send({
           message: 'Переданы некорректные данные',
         });
@@ -80,10 +84,10 @@ module.exports.likeCard = (req, res) => {
         });
         return;
       }
-      res.status(201).send(card);
+      res.status(CREATED_STATUS_CODE).send(card);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err instanceof mongooseError.CastError) {
         res.status(NOT_VALID_ERROR_CODE).send({
           message: 'Переданы некорректные данные',
         });
@@ -110,10 +114,10 @@ module.exports.dislikeCard = (req, res) => {
         });
         return;
       }
-      res.status(200).send(card);
+      res.status(OK_STATUS_CODE).send(card);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err instanceof mongooseError.CastError) {
         res.status(NOT_VALID_ERROR_CODE).send({
           message: 'Переданы некорректные данные',
         });
