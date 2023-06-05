@@ -1,29 +1,26 @@
 const mongooseError = require('mongoose').Error;
 
 const Card = require('../models/card');
+
 const {
   OK_STATUS_CODE,
   CREATED_STATUS_CODE,
-  NOT_VALID_ERROR_CODE,
-  NOT_FOUND_ERROR_CODE,
-  SERVER_ERROR_CODE,
 } = require('../constants/constants');
 
+const NotFoundError = require('../errors/notFoundError');
+const BadRequestError = require('../errors/badRequestError');
+const ForbiddenError = require('../errors/forbiddenError');
 // All cards route
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
       res.status(OK_STATUS_CODE).send({ cards });
     })
-    .catch((err) => {
-      res.status(SERVER_ERROR_CODE).send({
-        message: `Произошла ошибка${err.message}`,
-      });
-    });
+    .catch(next);
 };
 
 // Create card
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
@@ -32,46 +29,40 @@ module.exports.createCard = (req, res) => {
     })
     .catch((err) => {
       if (err instanceof mongooseError.ValidationError) {
-        res.status(NOT_VALID_ERROR_CODE).send({
-          message: 'Переданы некорректные данные',
-        });
+        next(new BadRequestError('Переданы некорректные данные'));
         return;
       }
 
-      res.status(SERVER_ERROR_CODE).send({
-        message: `Произошла ошибка ${err.message}`,
-      });
+      next(err);
     });
 };
 
 // Delete card
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
-      if (!card) {
-        res.status(NOT_FOUND_ERROR_CODE).send({
-          message: 'Карточка с таким id не найдена',
-        });
-        return;
+      if (card.owner !== req.user._id) {
+        throw new ForbiddenError('Вы можете удалять только свои карточки');
       }
+
+      if (!card) {
+        throw new NotFoundError('Карточка с таким id не найдена');
+      }
+
       res.status(OK_STATUS_CODE).send({ card });
     })
     .catch((err) => {
       if (err instanceof mongooseError.CastError) {
-        res.status(NOT_VALID_ERROR_CODE).send({
-          message: 'Переданы некорректные данные',
-        });
+        next(new BadRequestError('Переданы некорректные данные'));
         return;
       }
 
-      res.status(SERVER_ERROR_CODE).send({
-        message: `Произошла ошибка ${err.message}`,
-      });
+      next(err);
     });
 };
 
 // Like card
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -79,29 +70,23 @@ module.exports.likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(NOT_FOUND_ERROR_CODE).send({
-          message: 'Карточка с таким id не найдена',
-        });
-        return;
+        throw new NotFoundError('Карточка с таким id не найдена');
       }
+
       res.status(CREATED_STATUS_CODE).send(card);
     })
     .catch((err) => {
       if (err instanceof mongooseError.CastError) {
-        res.status(NOT_VALID_ERROR_CODE).send({
-          message: 'Переданы некорректные данные',
-        });
+        next(new BadRequestError('Переданы некорректные данные'));
         return;
       }
 
-      res.status(SERVER_ERROR_CODE).send({
-        message: `Произошла ошибка ${err.message}`,
-      });
+      next(err);
     });
 };
 
 // Dislike card
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -109,23 +94,17 @@ module.exports.dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(NOT_FOUND_ERROR_CODE).send({
-          message: 'Карточка с таким id не найдена',
-        });
-        return;
+        throw new NotFoundError('Карточка с таким id не найдена');
       }
+
       res.status(OK_STATUS_CODE).send(card);
     })
     .catch((err) => {
       if (err instanceof mongooseError.CastError) {
-        res.status(NOT_VALID_ERROR_CODE).send({
-          message: 'Переданы некорректные данные',
-        });
+        next(new BadRequestError('Переданы некорректные данные'));
         return;
       }
 
-      res.status(SERVER_ERROR_CODE).send({
-        message: `Произошла ошибка ${err.message}`,
-      });
+      next(err);
     });
 };

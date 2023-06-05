@@ -1,6 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const { errors } = require('celebrate');
+
 const router = require('./routes/index');
+const errorCatcher = require('./middlewares/errorCatcher');
 
 const app = express();
 
@@ -13,17 +17,12 @@ mongoose.connect('mongodb://0.0.0.0:27017/mestodb', {});
 // Parser
 app.use(express.json());
 
-// Middlewares
-app.use((req, res, next) => {
-  req.user = {
-    _id: '64732ffcf59598341e71a146',
-  };
-
-  next();
-});
-
 // Routing
 app.use('/', router);
+
+// Errors catch middlewares
+app.use(errors());
+app.use(errorCatcher);
 
 // Set port
 app.listen(PORT, () => {
