@@ -3,9 +3,7 @@ const router = require('express').Router();
 const { login, createUser } = require('../controllers/users');
 const userRouter = require('./users');
 const cardRouter = require('./cards');
-const {
-  NOT_FOUND_ERROR_CODE,
-} = require('../constants/constants');
+const NotFoundError = require('../errors/notFoundError');
 const {
   loginValidation,
   createUserValidation,
@@ -22,10 +20,9 @@ router.use(auth);
 // Protected routes
 router.use('/users', userRouter);
 router.use('/cards', cardRouter);
-router.use('/*', (req, res) => {
-  res.status(NOT_FOUND_ERROR_CODE).send({
-    message: 'Страница не найдена',
-  });
+router.use('/*', (req, res, next) => {
+  next(new NotFoundError('Страница не найдена'));
+  return;
 });
 
 module.exports = router;

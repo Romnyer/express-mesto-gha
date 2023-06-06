@@ -10,11 +10,12 @@ const {
 const NotFoundError = require('../errors/notFoundError');
 const BadRequestError = require('../errors/badRequestError');
 const ForbiddenError = require('../errors/forbiddenError');
+
 // All cards route
 module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
-      res.status(OK_STATUS_CODE).send({ cards });
+      res.status(OK_STATUS_CODE).send(cards);
     })
     .catch(next);
 };
@@ -45,13 +46,13 @@ module.exports.deleteCard = (req, res, next) => {
         throw new ForbiddenError('Вы можете удалять только свои карточки');
       }
 
-      if (!card) {
-        throw new NotFoundError('Карточка с таким id не найдена');
-      }
-
       res.status(OK_STATUS_CODE).send({ card });
     })
     .catch((err) => {
+      if (err instanceof mongooseError.DocumentNotFoundError) {
+        throw new NotFoundError('Карточка с таким id не найдена');
+      }
+
       if (err instanceof mongooseError.CastError) {
         next(new BadRequestError('Переданы некорректные данные'));
         return;
@@ -69,13 +70,13 @@ module.exports.likeCard = (req, res, next) => {
     { new: true },
   )
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Карточка с таким id не найдена');
-      }
-
       res.status(CREATED_STATUS_CODE).send(card);
     })
     .catch((err) => {
+      if (err instanceof mongooseError.DocumentNotFoundError) {
+        throw new NotFoundError('Карточка с таким id не найдена');
+      }
+
       if (err instanceof mongooseError.CastError) {
         next(new BadRequestError('Переданы некорректные данные'));
         return;
@@ -93,13 +94,13 @@ module.exports.dislikeCard = (req, res, next) => {
     { new: true },
   )
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Карточка с таким id не найдена');
-      }
-
       res.status(OK_STATUS_CODE).send(card);
     })
     .catch((err) => {
+      if (err instanceof mongooseError.DocumentNotFoundError) {
+        throw new NotFoundError('Карточка с таким id не найдена');
+      }
+
       if (err instanceof mongooseError.CastError) {
         next(new BadRequestError('Переданы некорректные данные'));
         return;
