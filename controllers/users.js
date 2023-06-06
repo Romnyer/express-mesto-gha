@@ -1,4 +1,3 @@
-const { JWT_CODE } = process.env;
 const mongooseError = require('mongoose').Error;
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -12,7 +11,7 @@ const {
 const NotFoundError = require('../errors/notFoundError');
 const BadRequestError = require('../errors/badRequestError');
 const AuthError = require('../errors/authError');
-const ConflictError = require('../errors/forbiddenError');
+const ConflictError = require('../errors/conflictError');
 
 // All users route
 module.exports.getUsers = (req, res, next) => {
@@ -70,7 +69,7 @@ module.exports.login = (req, res, next) => {
 
           const token = jwt.sign(
             { _id: user._id },
-            JWT_CODE,
+            '7e19ace2fda288c39b9003006412dedc',
             { expiresIn: '7d' },
           );
 
@@ -99,6 +98,12 @@ module.exports.createUser = (req, res, next) => {
       password: hash,
     })
       .then((user) => {
+        const user = {
+          name,
+          about,
+          avatar,
+          email,
+        };
         res.status(CREATED_STATUS_CODE).send(user);
       })
       .catch((err) => {
