@@ -1,4 +1,3 @@
-const { JWT_CODE } = process.env;
 const jwt = require('jsonwebtoken');
 const AuthError = require('../errors/authError');
 
@@ -14,7 +13,7 @@ module.exports = (req, res, next) => {
   let payload;
 
   try {
-    payload = jwt.verify(token, JWT_CODE);
+    payload = jwt.verify(token, '7e19ace2fda288c39b9003006412dedc');
   } catch (err) {
     next(new AuthError('Необходима авторизация'));
     return;
