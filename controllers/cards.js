@@ -40,25 +40,19 @@ module.exports.createCard = (req, res, next) => {
 
 // Delete card
 module.exports.deleteCard = (req, res, next) => {
-  Card.findOne({ _id: req.params.cardId })
-    .orFail()
+  Card.findById(req.params.cardId)
     .then((card) => {
+      if (!card) {
+        return next(new NotFoundError('Карточка с таким id не найдена'));
+      }
       if (card.owner.toString() !== req.user._id) {
-        throw new ForbiddenError('Вы можете удалять только свои карточки');
+        return next(new ForbiddenError('Вы можете удалять только свои карточки'));
       }
 
-      return card;
+      return Card.deleteOne(card)
+        .then(() => res.status(OK_STATUS_CODE).send(card));
     })
-    .then((card) => {
-      Card.findOneAndRemove(card);
-      return card;
-    })
-    .then((card) => res.status(OK_STATUS_CODE).send(card))
     .catch((err) => {
-      if (err instanceof mongooseError.DocumentNotFoundError) {
-        next(new NotFoundError('Карточка с таким id не найдена'));
-      }
-
       if (err instanceof mongooseError.CastError) {
         next(new BadRequestError('Переданы некорректные данные'));
         return;
