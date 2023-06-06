@@ -98,9 +98,14 @@ module.exports.createUser = (req, res, next) => {
       password: hash,
     })
       .then((user) => {
-
         // Exclude password from sending
-        const { password, ...userWithoutPass } = user;
+        const userWithoutPass = {
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+          id: user._id,
+        };
 
         res.status(CREATED_STATUS_CODE).send(userWithoutPass);
       })

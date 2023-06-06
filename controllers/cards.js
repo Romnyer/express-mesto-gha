@@ -40,17 +40,23 @@ module.exports.createCard = (req, res, next) => {
 
 // Delete card
 module.exports.deleteCard = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findOne({ _id: req.params.cardId })
+    .orFail()
     .then((card) => {
-      if (card.owner !== req.user._id) {
+      if (card.owner.toString() !== req.user._id) {
         throw new ForbiddenError('Вы можете удалять только свои карточки');
       }
 
-      res.status(OK_STATUS_CODE).send({ card });
+      return card;
     })
+    .then((card) => {
+      Card.findOneAndRemove(card);
+      return card;
+    })
+    .then((card) => res.status(OK_STATUS_CODE).send(card))
     .catch((err) => {
       if (err instanceof mongooseError.DocumentNotFoundError) {
-        throw new NotFoundError('Карточка с таким id не найдена');
+        next(new NotFoundError('Карточка с таким id не найдена'));
       }
 
       if (err instanceof mongooseError.CastError) {
@@ -69,12 +75,13 @@ module.exports.likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    .orFail()
     .then((card) => {
       res.status(CREATED_STATUS_CODE).send(card);
     })
     .catch((err) => {
       if (err instanceof mongooseError.DocumentNotFoundError) {
-        throw new NotFoundError('Карточка с таким id не найдена');
+        next(new NotFoundError('Карточка с таким id не найдена'));
       }
 
       if (err instanceof mongooseError.CastError) {
@@ -93,12 +100,13 @@ module.exports.dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    .orFail()
     .then((card) => {
       res.status(OK_STATUS_CODE).send(card);
     })
     .catch((err) => {
       if (err instanceof mongooseError.DocumentNotFoundError) {
-        throw new NotFoundError('Карточка с таким id не найдена');
+        next(new NotFoundError('Карточка с таким id не найдена'));
       }
 
       if (err instanceof mongooseError.CastError) {
