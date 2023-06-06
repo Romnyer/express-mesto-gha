@@ -98,13 +98,13 @@ module.exports.createUser = (req, res, next) => {
       password: hash,
     })
       .then((user) => {
-        const user = {
+        const userWithoutPass = {
           name,
           about,
           avatar,
           email,
         };
-        res.status(CREATED_STATUS_CODE).send(user);
+        res.status(CREATED_STATUS_CODE).send(userWithoutPass);
       })
       .catch((err) => {
         if (err.code === 11000) {
