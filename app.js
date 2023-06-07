@@ -17,7 +17,7 @@ const app = express();
 
 // Safety
 app.use(hemlet());
-app.use(limiter());
+app.use(limiter);
 
 // Environment vars
 const { PORT = 3000 } = process.env;
