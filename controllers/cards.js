@@ -76,6 +76,7 @@ module.exports.likeCard = (req, res, next) => {
     .catch((err) => {
       if (err instanceof mongooseError.DocumentNotFoundError) {
         next(new NotFoundError('Карточка с таким id не найдена'));
+        return;
       }
 
       if (err instanceof mongooseError.CastError) {
@@ -101,6 +102,7 @@ module.exports.dislikeCard = (req, res, next) => {
     .catch((err) => {
       if (err instanceof mongooseError.DocumentNotFoundError) {
         next(new NotFoundError('Карточка с таким id не найдена'));
+        return;
       }
 
       if (err instanceof mongooseError.CastError) {
