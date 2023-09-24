@@ -22,7 +22,7 @@ Mesto – это **проект** для публикации изображен
 
 ### 🛠Стек
 <div>
-  <img src="" alt="Express.js" style="display:inline;"/>
+  <img src="https://img.shields.io/badge/Express.js-black?style=flat-square&logo=Express&logoColor=white" alt="Express.js" style="display:inline;"/>
   <img src="https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=MongoDB&logoColor=white" alt="MongoDB" style="display:inline;"/>
   <img src="https://img.shields.io/badge/Postman-FF6C37?style=flat-square&logo=Postman&logoColor=white" alt="Postman" style="display:inline;"/>
   <img src="https://img.shields.io/badge/ESLint-4B32C3?style=flat-square&logo=ESLint&logoColor=white" alt="ESLint" style="display:inline;"/>
